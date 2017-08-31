@@ -228,6 +228,79 @@ function renderAllTextures(element, game) {
 	});
 }
 
+// ...
+// XXX hardcoded heretic
+function drawFlat(f) {
+	fn = "heretic/flats/"+f.toLowerCase()+".png";
+	var img = document.createElement("img");
+	img.src = fn;
+	return img;
+}
+
+// parseFlats pulls a list of Flat lump names out of a Deutex-format
+// wadinfo.txt file (supplied as a string)
+function parseFlats(wadinfo) {
+	var lines = wadinfo.split("\n");
+	var i;
+	var flats = [];
+	// skip until [flats]
+	for (i = 0; i < lines.length; ++i) {
+		if(lines[i] == "[flats]") {
+			i++;
+			break;
+		}
+	}
+	for(; i < lines.length; ++i) {
+		if(lines[i].length <= 0) {
+			// end of flats
+			break;
+		}
+		flats.push(lines[i]);
+	}
+	return flats;
+}
+
+// loadWadInfo loads a deutex-format wadinfo file and calls parseFlats
+// to extract a list of flat names.
+// The provided callback is invoked with the list of flats from the file.
+// XXX this is extremely similar to loadTexturesFile
+function loadWadInfo(url, callback) {
+	var xhr = new XMLHttpRequest();
+	xhr.open('GET', url);
+	xhr.onreadystatechange = function() {
+		console.log("response loading " + xhr.responseURL + ": " +
+					xhr.status);
+		if (xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
+			var flats = parseFlats(xhr.responseText);
+			console.log("loaded " + flats.length +
+						" flats from file: " + xhr.responseURL);
+			callback(flats);
+		}
+	}
+	xhr.send();
+}
+
+// renderAllFlats populates the given HTML element with <img> elements
+// for all flats in the given game. (see above)
+function renderAllFlats(element, game) {
+	var url = game + "/wadinfo.txt";
+	console.log("load flats from " + url);
+	loadWadInfo(url, function(flats) {
+		element.innerHTML = "";
+		var i;
+		for (i = 0; i < flats.length; ++i) {
+			var f  = flats[i];
+			var img = drawFlat(f);
+			var div = document.createElement("div");
+			div.className = "texdiv";
+			div.appendChild(img);
+			div.appendChild(document.createElement("br"));
+			div.appendChild(document.createTextNode(f)); // name
+			element.appendChild(div);
+		}
+	});
+}
+
 // getGame looks for a URL parameter in the loaded page specifying which game
 // to render textures for; if none exists then 'doom1' is the default.
 function getGame() {
@@ -247,5 +320,10 @@ window.onload = function() {
 	var game = getGame();
 	console.log("rendering for " + game);
 	renderAllTextures(el, game);
+
+	el = document.getElementById("flat-list");
+	el.innerHTML = "Loading...";
+	console.log("rendering flats for " + game);
+	renderAllFlats(el, game);
 }
 
