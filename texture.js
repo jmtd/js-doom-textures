@@ -220,9 +220,12 @@ function renderAllTextures(element, game) {
 			for (i = 0; i < textures.length; ++i) {
 				var tx = textures[i];
 				var canvas = tx.drawTexture(ps);
-				//element.appendChild(document.createTextNode(tx.name));
-				element.appendChild(canvas);
-				//element.appendChild(document.createElement("br"));
+				var div = document.createElement("div");
+				div.className = "texdiv";
+				div.appendChild(canvas);
+				div.appendChild(document.createElement("br"));
+				div.appendChild(document.createTextNode(tx.name));
+				element.appendChild(div);
 			}
 		});
 	});
